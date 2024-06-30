@@ -1,0 +1,159 @@
+local OrionLib = loadstring(game:HttpGet(('https://raw.githubusercontent.com/shlexware/Orion/main/source')))()
+local Window = OrionLib:MakeWindow({Name = "Xenon V1", HidePremium = false, SaveConfig = true, ConfigFolder = "OrionTest", IntroText = "Welcome to Xenon V1"})
+
+local MainTab = Window:MakeTab({
+    Name = "Main",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local GamesTab = Window:MakeTab({
+    Name = "Games🤖",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+local OtherTab = Window:MakeTab({
+    Name = "Other+",
+    Icon = "rbxassetid://4483345998",
+    PremiumOnly = false
+})
+
+-- Notification
+OrionLib:MakeNotification({
+    Name = "Welcome!",
+    Content = "Xenon V1 Loaded",
+    Image = "rbxassetid://4483345998",
+    Time = 5
+})
+
+-- Variables for aimbot and FOV
+local aimbotEnabled = false
+local fovCircle = Drawing.new("Circle")
+fovCircle.Thickness = 2
+fovCircle.NumSides = 100
+fovCircle.Radius = 100
+fovCircle.Filled = false
+fovCircle.Visible = false
+
+-- Function to update FOV circle position and color
+local function updateFovCircle()
+    fovCircle.Position = Vector2.new(workspace.CurrentCamera.ViewportSize.X / 2, workspace.CurrentCamera.ViewportSize.Y / 2)
+    fovCircle.Color = Color3.fromHSV(tick() % 5 / 5, 1, 1) -- Dynamic RGB color
+end
+
+-- Function to check if there is a direct line of sight to the target
+local function isTargetVisible(target)
+    local player = game.Players.LocalPlayer
+    local character = player.Character
+    if character and character:FindFirstChild("Head") then
+        local origin = character.Head.Position
+        local direction = (target.Position - origin).unit * (target.Position - origin).Magnitude
+        local ray = Ray.new(origin, direction)
+        local part, position = workspace:FindPartOnRay(ray, character, false, true)
+        if part and part:IsDescendantOf(target.Parent) then
+            return true
+        end
+    end
+    return false
+end
+
+-- Function to enable/disable aimbot
+local function aimbot(enable)
+    aimbotEnabled = enable
+    fovCircle.Visible = enable
+    if enable then
+        print("Aimbot enabled")
+        game:GetService("RunService").RenderStepped:Connect(function()
+            updateFovCircle()
+            if aimbotEnabled then
+                -- Aimbot logic to target closest visible player within FOV
+                local closestPlayer = nil
+                local shortestDistance = fovCircle.Radius
+                for _, player in ipairs(game.Players:GetPlayers()) do
+                    if player ~= game.Players.LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+                        local screenPoint = workspace.CurrentCamera:WorldToScreenPoint(player.Character.HumanoidRootPart.Position)
+                        local distance = (Vector2.new(screenPoint.X, screenPoint.Y) - fovCircle.Position).Magnitude
+                        if distance < shortestDistance and isTargetVisible(player.Character.HumanoidRootPart) then
+                            closestPlayer = player
+                            shortestDistance = distance
+                        end
+                    end
+                end
+                if closestPlayer then
+                    workspace.CurrentCamera.CFrame = CFrame.new(workspace.CurrentCamera.CFrame.Position, closestPlayer.Character.HumanoidRootPart.Position)
+                end
+            end
+        end)
+    else
+        print("Aimbot disabled")
+    end
+end
+
+-- Adding a toggle to MainTab for Aimbot
+MainTab:AddToggle({
+    Name = "Enable Aimbot",
+    Default = false,
+    Callback = function(value)
+        aimbot(value)
+    end    
+})
+
+-- Adding a button to load the Ultimate Trolling Hub
+MainTab:AddButton({
+    Name = "Load Ultimate Trolling Hub",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Orealated/Oreal/main/orealated%20Easy.gg%20UTH%20Loader"))()
+    end    
+})
+
+-- Adding a slider to MainTab for FOV Radius
+MainTab:AddSlider({
+    Name = "FOV Radius",
+    Min = 50,
+    Max = 300,
+    Default = 100,
+    Color = Color3.fromRGB(255,255,255),
+    Increment = 10,
+    ValueName = "Radius",
+    Callback = function(value)
+        fovCircle.Radius = value
+    end    
+})
+
+-- Adding other UI elements for demonstration
+MainTab:AddLabel("Aimbot Settings")
+MainTab:AddParagraph("Instructions", "Use the slider to adjust the FOV radius. Toggle the aimbot on or off.")
+
+-- Adding elements to Games Tab
+GamesTab:AddParagraph("Lumber Tycoon 2", "Various scripts and utilities for Lumber Tycoon 2.")
+GamesTab:AddButton({
+    Name = "Butterhub",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Butterisgood/Butter/main/Root2.lua"))("")
+    end    
+})
+
+-- Adding elements to Other Tab
+OtherTab:AddButton({
+    Name = "Keyboard",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/advxzivhsjjdhxhsidifvsh/mobkeyboard/main/main.txt", true))()
+    end    
+})
+
+OtherTab:AddButton({
+    Name = "Ghost hub",
+    Callback = function()
+        loadstring(game:HttpGet('https://raw.githubusercontent.com/GhostPlayer352/Test4/main/GhostHub'))()
+    end    
+})
+
+OtherTab:AddButton({
+    Name = "Hitbox op",
+    Callback = function()
+        loadstring(game:HttpGet("https://raw.githubusercontent.com/Vcsk/RobloxScripts/main/HitboxExpander.lua"))()
+    end    
+})
+
+OrionLib:Init()
